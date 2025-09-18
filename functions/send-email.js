@@ -3,7 +3,6 @@ export async function onRequestPost(context) {
     const data = await context.request.json();
     console.log("Datos recibidos:", data);
 
-    // Validar email
     function isValidEmail(email) {
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     }
@@ -33,7 +32,10 @@ export async function onRequestPost(context) {
 
     console.log("Mensaje construido:", msg);
 
-    // Enviar a SendGrid
+    // Depuración extra antes del fetch
+    console.log("Voy a enviar a SendGrid");
+
+    // ENVÍO A SENDGRID
     const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
       method: 'POST',
       headers: {
@@ -43,7 +45,8 @@ export async function onRequestPost(context) {
       body: JSON.stringify(msg),
     });
 
-    // Logs para depuración
+    // Depuración extra después del fetch
+    console.log("Respuesta recibida de SendGrid");
     console.log("Status de SendGrid:", response.status);
     console.log("StatusText de SendGrid:", response.statusText);
     console.log("Headers de SendGrid:", JSON.stringify([...response.headers]));
@@ -68,6 +71,7 @@ export async function onRequestPost(context) {
     }
 
   } catch (error) {
+    // Depuración para errores internos
     console.error("Error en la función de Cloudflare:", error);
     return new Response(JSON.stringify({ error: "Hubo un error interno en la función." }), {
       status: 500,
