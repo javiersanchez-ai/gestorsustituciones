@@ -34,6 +34,7 @@ export async function onRequestPost(context) {
 
     console.log("Mensaje construido:", msg);
 
+    // ENVÍO A SENDGRID
     const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
       method: 'POST',
       headers: {
@@ -43,7 +44,11 @@ export async function onRequestPost(context) {
       body: JSON.stringify(msg),
     });
 
+    // MOSTRAR STATUS CODE
     console.log("Status de SendGrid:", response.status);
+
+    // También puedes mostrar el statusText para más info
+    console.log("StatusText de SendGrid:", response.statusText);
 
     if (response.status >= 200 && response.status < 300) {
       return new Response(JSON.stringify({ message: "Correo enviado con éxito" }), {
@@ -51,11 +56,15 @@ export async function onRequestPost(context) {
         headers: { 'Content-Type': 'application/json' },
       });
     } else {
+      // Extra: muestra los headers y el cuerpo del error
+      console.log("Headers de SendGrid:", JSON.stringify([...response.headers]));
       const errorBody = await response.text();
       console.error("Error desde SendGrid:", errorBody);
       return new Response(JSON.stringify({ 
         error: "Hubo un error al contactar con el servicio de correo.",
-        details: errorBody
+        details: errorBody,
+        status: response.status,
+        statusText: response.statusText
       }), {
         status: response.status,
         headers: { 'Content-Type': 'application/json' },
@@ -63,6 +72,7 @@ export async function onRequestPost(context) {
     }
 
   } catch (error) {
+    // Si hay un error en nuestra propia función, lo mostramos
     console.error("Error en la función de Cloudflare:", error);
     return new Response(JSON.stringify({ error: "Hubo un error interno en la función." }), {
         status: 500,
