@@ -21,6 +21,7 @@ export async function onRequestPost(context) {
 
     const fromEmail = 'javier.sanchez@salesianosciudadreal.com';
 
+    // Solo esta línea para send_at:
     const sendAt = data.sendAt ? Math.floor(new Date(data.sendAt).getTime() / 1000) : undefined;
 
     const msg = {
