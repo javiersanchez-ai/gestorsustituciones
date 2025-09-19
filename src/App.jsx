@@ -506,9 +506,36 @@ function ManageSubstitutionsScreen({ substitutions, navigateTo, users }) {
 
     const handleAction = async (sub, newStatus) => {
         await updateDoc(doc(db, "substitutions", sub.id), { status: newStatus });
-        setToastMessage(`Solicitud ${newStatus.toLowerCase()}`);
+        
+        const professor = users.find(u => u.id === sub.userId);
+        if (!professor) return;
+
+        const emailData = {
+            to: professor.email,
+            subject: `Tu solicitud de ausencia ha sido ${newStatus}`,
+            text: `Hola ${professor.name},\n\nTu solicitud de ausencia para la fecha ${sub.date || sub.startDate} ha sido ${newStatus.toLowerCase()}.\n\nUn saludo,\nCoordinación.`
+        };
+
+        setToastMessage('Enviando notificación...');
         setShowToast(true);
-        setTimeout(() => setShowToast(false), 3000);
+
+        try {
+            const response = await fetch('/api/send-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(emailData),
+            });
+            if (response.ok) {
+                setToastMessage('¡Notificación enviada!');
+            } else {
+                throw new Error('Falló el envío del correo');
+            }
+        } catch (error) {
+            console.error("Error al enviar el correo:", error);
+            setToastMessage('Error al notificar.');
+        } finally {
+            setTimeout(() => setShowToast(false), 3000);
+        }
     };
 
     return (
@@ -624,8 +651,44 @@ function AssignSuplenteScreen({ substitutions, navigateTo, users, gruposEscoba, 
     const handleConfirmAssignments = async () => {
         if (!assigningSub) return;
         await updateDoc(doc(db, "substitutions", assigningSub.id), { hourlyAssignments });
-        setToastMessage('¡Suplencias comunicadas!');
+        setToastMessage('Enviando notificaciones...');
         setShowToast(true);
+
+        const assignmentsByTeacher = {};
+        for(const date in hourlyAssignments) {
+            for(const hour in hourlyAssignments[date]) {
+                const teacherId = hourlyAssignments[date][hour];
+                if(teacherId) {
+                    if(!assignmentsByTeacher[teacherId]) assignmentsByTeacher[teacherId] = [];
+                    assignmentsByTeacher[teacherId].push(`- ${date} a las ${hour}`);
+                }
+            }
+        }
+
+        const emailPromises = Object.entries(assignmentsByTeacher).map(async ([teacherId, tasks]) => {
+            const teacher = users.find(u => u.id === parseInt(teacherId));
+            if(!teacher) return;
+
+            const emailData = {
+                to: teacher.email,
+                subject: `Asignación de Suplencia`,
+                text: `Hola ${teacher.name},\n\nHas sido asignado para cubrir las siguientes horas:\n${tasks.join('\n')}\n\nGracias,\nCoordinación.`
+            };
+            
+            try {
+                await fetch('/api/send-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(emailData),
+                });
+            } catch (error) {
+                console.error(`Error enviando correo a ${teacher.email}:`, error);
+            }
+        });
+
+        await Promise.all(emailPromises);
+
+        setToastMessage('¡Suplencias comunicadas!');
         setTimeout(() => { setShowToast(false); setAssigningSub(null); }, 2000);
     };
 
