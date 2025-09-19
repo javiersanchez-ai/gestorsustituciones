@@ -3,6 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc } from "firebase/firestore";
 
+// --- URL del "Cartero" de Google Apps Script ---
+// IMPORTANTE: Pega aquí la URL que copiaste al implementar tu script de Google
+const APPS_SCRIPT_URL = 'https://script.google.com/a/macros/salesianosciudadreal.com/s/AKfycbzKMwC-uQZIyvhfNfgzryc3Ccfubb0F2zGTdkSNHANQWNLLt1m1Sz-xhCrFWkurgvcl/exec'; 
+
 // --- Configuración y Conexión con Firebase ---
 const firebaseConfig = {
   apiKey: "AIzaSyAMu1V172CvZaBMk9yZ3fTvPvaRA4NPo8g",
@@ -16,7 +20,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 
-// --- Base de Datos de Usuarios (Sigue siendo local por simplicidad) ---
+// --- Base de Datos de Usuarios ---
 const users = [
     { id: 1, name: 'Alberto López', email: 'alberto.lopez@salesianosciudadreal.com', role: 'profesor' },
     { id: 2, name: 'Ana Moraga', email: 'ana.moraga@salesianosciudadreal.com', role: 'profesor' },
