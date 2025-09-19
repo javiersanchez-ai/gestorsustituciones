@@ -3,10 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc } from "firebase/firestore";
 
-// --- URL del "Cartero" de Google Apps Script ---
-// IMPORTANTE: Pega aquí la URL que copiaste al implementar tu script de Google
-const APPS_SCRIPT_URL = 'https://script.google.com/a/macros/salesianosciudadreal.com/s/AKfycbzKMwC-uQZIyvhfNfgzryc3Ccfubb0F2zGTdkSNHANQWNLLt1m1Sz-xhCrFWkurgvcl/exec'; 
-
 // --- Configuración y Conexión con Firebase ---
 const firebaseConfig = {
   apiKey: "AIzaSyAMu1V172CvZaBMk9yZ3fTvPvaRA4NPo8g",
@@ -20,7 +16,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 
-// --- Base de Datos de Usuarios ---
+// --- Base de Datos de Usuarios (Sigue siendo local por simplicidad) ---
 const users = [
     { id: 1, name: 'Alberto López', email: 'alberto.lopez@salesianosciudadreal.com', role: 'profesor' },
     { id: 2, name: 'Ana Moraga', email: 'ana.moraga@salesianosciudadreal.com', role: 'profesor' },
@@ -63,11 +59,11 @@ const users = [
 
 const schedules = {
   21: { 
-    1: ["2a", "2a", "3ab", "3ab", "2b", "2b"], 
-    2: [null, null, "2b", "2b", "P", "RP"],     
-    3: ["2a", "2a", "3ab", null, null, null], 
-    4: ["3ab", "3ab", "2a", "2b", "2b", null], 
-    5: ["2b", "2a", "P", "3ab", null, null],    
+    1: ["2a", "2a", "3ab", "3ab", "2b", "2b"], // Lunes
+    2: [null, null, "2b", "2b", "P", "RP"],     // Martes
+    3: ["2a", "2a", "3ab", null, null, null], // Miércoles
+    4: ["3ab", "3ab", "2a", "2b", "2b", null], // Jueves
+    5: ["2b", "2a", "P", "3ab", null, null],    // Viernes
   }
 };
 
@@ -520,7 +516,7 @@ function ManageSubstitutionsScreen({ substitutions, navigateTo, users }) {
         setShowToast(true);
 
         try {
-            const response = await fetch('/api/send-email', {
+            const response = await fetch('/functions/send-email', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(emailData),
@@ -676,7 +672,7 @@ function AssignSuplenteScreen({ substitutions, navigateTo, users, gruposEscoba, 
             };
             
             try {
-                await fetch('/api/send-email', {
+                await fetch('/functions/send-email', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(emailData),
